@@ -10,7 +10,7 @@ import {
   StudioTemplate,
 } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '') + '/api';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {

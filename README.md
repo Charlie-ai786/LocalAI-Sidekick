@@ -29,6 +29,7 @@
   - [Frontend Setup](#2-frontend-setup)
   - [Running with Ollama (Recommended)](#3-running-with-ollama-recommended)
   - [Zero-Config Demo Mode](#4-zero-config-demo-mode)
+  - [Deploying to Render (Cloud Hosting)](#5-deploying-to-render-cloud-hosting)
 - [Configuration & Environment Variables](#-configuration--environment-variables)
 - [Compatible Models & Hardware Guide](#-compatible-models--hardware-guide)
 - [API Overview](#-api-overview)
@@ -263,6 +264,50 @@ No problem! LocalAI Sidekick includes a built-in **Mock Demo Provider**:
 - Automatically activated if Ollama is unreachable.
 - Can be manually toggled via the **Models** tab or header badge.
 - Generates realistic contextual responses, citations, and structured extraction so you can explore the entire workflow.
+
+---
+
+### 5. Deploying to Render (Cloud Hosting)
+
+Deploy **LocalAI Sidekick** on Render's free tier as a unified full-stack service (FastAPI serves both the API and the React production build):
+
+#### Method A: 1-Click Render Blueprint (Fastest)
+
+1. Push your repository to GitHub:
+   ```bash
+   git push -u origin main
+   ```
+2. Go to your [Render Dashboard](https://dashboard.render.com).
+3. Click **New +** > **Blueprint**.
+4. Connect your GitHub repository (`Charlie-ai786/LocalAI-Sidekick`).
+5. Render detects [`render.yaml`](render.yaml) automatically. Click **Apply**.
+6. Render builds the React app, installs Python packages, and boots the service!
+
+#### Method B: Manual Web Service Setup
+
+If setting up manually in Render:
+1. Click **New +** > **Web Service**.
+2. Connect your GitHub repository.
+3. Configure settings:
+   - **Name**: `localai-sidekick`
+   - **Language**: `Python`
+   - **Region**: Any (e.g. `Oregon`)
+   - **Branch**: `main`
+   - **Build Command**:
+     ```bash
+     npm --prefix frontend install && npm --prefix frontend run build && pip install -r backend/requirements.txt
+     ```
+   - **Start Command**:
+     ```bash
+     python backend/run.py
+     ```
+   - **Plan**: `Free`
+4. In **Environment Variables**, add:
+   - `PYTHON_VERSION`: `3.12.0`
+   - `NODE_VERSION`: `20.x`
+   - `DEMO_MODE`: `true`
+5. Click **Create Web Service**.
+6. Once deployed, open your Render URL (e.g., `https://localai-sidekick.onrender.com`).
 
 ---
 

@@ -1,8 +1,10 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.app.config import settings
 from backend.app.database import init_db
@@ -80,3 +82,25 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"detail": "An internal server error occurred. Check backend logs for details."},
     )
+
+
+# Serve built frontend in production (e.g. Render single-service deployment)
+FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if FRONTEND_DIST.exists():
+    logger.info(f"Mounting production frontend assets from {FRONTEND_DIST}")
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_frontend(full_path: str):
+        if full_path.startswith("api") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
+        target = FRONTEND_DIST / full_path
+        if target.is_file():
+            return FileResponse(target)
+        index_file = FRONTEND_DIST / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        return JSONResponse(status_code=404, content={"detail": "Frontend build not found"})
+
